@@ -21,11 +21,9 @@ interface CharacteristicProps {
 
 const Characteristic: React.FC<CharacteristicProps> = props => {
   const {label, action, characteristics, onPress, content, input} = props;
-
   if (characteristics.length === 0) {
     return null;
   }
-
   return (
     <View style={styles.container}>
       <Text style={{color: 'black'}}>{label}</Text>
@@ -34,7 +32,7 @@ const Characteristic: React.FC<CharacteristicProps> = props => {
         <TextInput
           style={styles.textInput}
           value={input.inputText}
-          placeholder="请输入消息"
+          placeholder="메시지를 입력하십시오."
           onChangeText={text => {
             input.setInputText(text);
           }}

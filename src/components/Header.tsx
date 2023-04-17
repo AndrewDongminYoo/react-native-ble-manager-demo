@@ -3,14 +3,14 @@ import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 
 interface HeaderProps {
   isConnected: boolean;
-  scaning: boolean;
+  scanning: boolean;
   disabled: boolean;
   onPress: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({
   isConnected,
-  scaning,
+  scanning,
   disabled,
   onPress,
 }) => {
@@ -22,12 +22,15 @@ const Header: React.FC<HeaderProps> = ({
         disabled={disabled}
         onPress={onPress}>
         <Text style={[styles.buttonText]}>
-          {scaning ? '正在搜索中' : isConnected ? '断开蓝牙连接' : '搜索蓝牙'}
+          {scanning
+            ? 'Bluetooth 스캔 중'
+            : isConnected
+            ? 'Bluetooth를 분리하세요.'
+            : 'Bluetooth를 연결하세요.'}
         </Text>
       </TouchableOpacity>
-
       <Text style={{marginLeft: 10, marginTop: 10}}>
-        {isConnected ? '当前连接的设备' : '可用设备'}
+        {isConnected ? '현재 장비 연결됨' : '현재 연결 가능'}
       </Text>
     </View>
   );

@@ -1,9 +1,10 @@
-# React Native BLE 蓝牙通信
+# React Native BLE Bluetooth 통신
 
-详细使用请查看 [React Native BLE 蓝牙通信](http://blog.csdn.net/withings/article/details/71378562)
+자세히 확인하려면 [React Native BLE Bluetooth 통신](http://blog.csdn.net/withings/article/details/71378562)
 
-# demo 截图（ios）
+## demo 스크린 샷 (iOS)
 
-![搜索](https://github.com/zhanguangao/react-native-ble-manager-demo/blob/next/assets/scan.png?raw=true)
-<br>
-![已连接](https://github.com/zhanguangao/react-native-ble-manager-demo/blob/next/assets/connect.png?raw=true)
+![스캔](https://github.com/zhanguangao/react-native-ble-manager-demo/blob/next/assets/scan.png?raw=true)
+<br/>
+
+![연결](https://github.com/zhanguangao/react-native-ble-manager-demo/blob/next/assets/connect.png?raw=true)

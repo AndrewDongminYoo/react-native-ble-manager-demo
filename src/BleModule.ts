@@ -6,26 +6,23 @@ import {byteToString} from './utils';
 const bleManagerEmitter = new NativeEventEmitter(NativeModules.BleManager);
 
 export default class BleModule {
-  /** 配对的蓝牙id */
+  /** 페어링된 주변기기 ID */
   peripheralId: string;
-  /** 蓝牙打开状态 */
+  /** Bluetooth 상태 */
   bleState: BleState;
-
   readServiceUUID!: any[];
   readCharacteristicUUID!: any[];
   writeWithResponseServiceUUID!: any[];
   writeWithResponseCharacteristicUUID!: any[];
   writeWithoutResponseServiceUUID!: any[];
   writeWithoutResponseCharacteristicUUID!: any[];
-  nofityServiceUUID!: any[];
-  nofityCharacteristicUUID!: any[];
-
+  notifyServiceUUID!: any[];
+  notifyCharacteristicUUID!: any[];
   constructor() {
     this.peripheralId = '';
     this.bleState = BleState.Off;
     this.initUUID();
   }
-
   initUUID() {
     this.readServiceUUID = [];
     this.readCharacteristicUUID = [];
@@ -33,11 +30,10 @@ export default class BleModule {
     this.writeWithResponseCharacteristicUUID = [];
     this.writeWithoutResponseServiceUUID = [];
     this.writeWithoutResponseCharacteristicUUID = [];
-    this.nofityServiceUUID = [];
-    this.nofityCharacteristicUUID = [];
+    this.notifyServiceUUID = [];
+    this.notifyCharacteristicUUID = [];
   }
-
-  /** 添加监听器 */
+  /** 리스너 추가 */
   addListener(
     eventType: BleEventType,
     listener: (data: any) => void,
@@ -45,12 +41,11 @@ export default class BleModule {
   ) {
     return bleManagerEmitter.addListener(eventType, listener, context);
   }
-
-  /** 初始化蓝牙模块 */
+  /** Bluetooth 모듈 초기화 */
   start() {
     BleManager.start({showAlert: false})
       .then(() => {
-        // 初始化成功后检查蓝牙状态
+        // 초기화 성공한 후 Bluetooth 상태 확인
         this.checkState();
         console.log('Init the module success');
       })
@@ -58,13 +53,11 @@ export default class BleModule {
         console.log('Init the module fail', error);
       });
   }
-
-  /** 强制检查蓝牙状态 并触发 BleManagerDidUpdateState 事件 */
+  /** Bluetooth 상태 및 트리거 BleManagerDidUpdateState 이벤트에 대한 강제 검사 */
   checkState() {
     BleManager.checkState();
   }
-
-  /** 扫描可用设备，5秒后结束 */
+  /** 사용 가능한 장비를 스캔하고 5 초 후에 끝납니다. */
   scan(): Promise<void> {
     return new Promise((resolve, reject) => {
       BleManager.scan([], 5, true)
@@ -78,8 +71,7 @@ export default class BleModule {
         });
     });
   }
-
-  /** 停止扫描 */
+  /** 스캔 중지 */
   stopScan(): Promise<void> {
     return new Promise((resolve, reject) => {
       BleManager.stopScan()
@@ -93,8 +85,7 @@ export default class BleModule {
         });
     });
   }
-
-  /** 返回扫描到的蓝牙设备 */
+  /** 스캔 한 Bluetooth 장비로 돌아갑니다. */
   getDiscoveredPeripherals(): Promise<Peripheral[]> {
     return new Promise((resolve, reject) => {
       BleManager.getDiscoveredPeripherals()
@@ -108,8 +99,7 @@ export default class BleModule {
         });
     });
   }
-
-  /** 将16、32、128位 UUID 转换为128位大写的 UUID */
+  /** 16, 32 및 128 Bit UUID를 128 Bit UUID로 변환합니다. */
   fullUUID(uuid: string) {
     if (uuid.length === 4) {
       return '0000' + uuid.toUpperCase() + '-0000-1000-8000-00805F9B34FB';
@@ -119,8 +109,7 @@ export default class BleModule {
     }
     return uuid.toUpperCase();
   }
-
-  /** 获取Notify、Read、Write、WriteWithoutResponse的serviceUUID和characteristicUUID */
+  /** 알림, 읽기, 쓰기, WriteWithoutResponse의 serviceUUID 및 characteristicUUID를 얻습니다. */
   getUUID(peripheralInfo: PeripheralInfo) {
     this.readServiceUUID = [];
     this.readCharacteristicUUID = [];
@@ -128,44 +117,44 @@ export default class BleModule {
     this.writeWithResponseCharacteristicUUID = [];
     this.writeWithoutResponseServiceUUID = [];
     this.writeWithoutResponseCharacteristicUUID = [];
-    this.nofityServiceUUID = [];
-    this.nofityCharacteristicUUID = [];
+    this.notifyServiceUUID = [];
+    this.notifyCharacteristicUUID = [];
     for (let item of peripheralInfo.characteristics!) {
       item.service = this.fullUUID(item.service);
       item.characteristic = this.fullUUID(item.characteristic);
-      if (Platform.OS == 'android') {
-        if (item.properties.Notify == 'Notify') {
-          this.nofityServiceUUID.push(item.service);
-          this.nofityCharacteristicUUID.push(item.characteristic);
+      if (Platform.OS === 'android') {
+        if (item.properties.Notify === 'Notify') {
+          this.notifyServiceUUID.push(item.service);
+          this.notifyCharacteristicUUID.push(item.characteristic);
         }
-        if (item.properties.Read == 'Read') {
+        if (item.properties.Read === 'Read') {
           this.readServiceUUID.push(item.service);
           this.readCharacteristicUUID.push(item.characteristic);
         }
-        if (item.properties.Write == 'Write') {
+        if (item.properties.Write === 'Write') {
           this.writeWithResponseServiceUUID.push(item.service);
           this.writeWithResponseCharacteristicUUID.push(item.characteristic);
         }
-        if (item.properties.WriteWithoutResponse == 'WriteWithoutResponse') {
+        if (item.properties.WriteWithoutResponse === 'WriteWithoutResponse') {
           this.writeWithoutResponseServiceUUID.push(item.service);
           this.writeWithoutResponseCharacteristicUUID.push(item.characteristic);
         }
       } else {
         // ios
         for (let property of item.properties as string[]) {
-          if (property == 'Notify') {
-            this.nofityServiceUUID.push(item.service);
-            this.nofityCharacteristicUUID.push(item.characteristic);
+          if (property === 'Notify') {
+            this.notifyServiceUUID.push(item.service);
+            this.notifyCharacteristicUUID.push(item.characteristic);
           }
-          if (property == 'Read') {
+          if (property === 'Read') {
             this.readServiceUUID.push(item.service);
             this.readCharacteristicUUID.push(item.characteristic);
           }
-          if (property == 'Write') {
+          if (property === 'Write') {
             this.writeWithResponseServiceUUID.push(item.service);
             this.writeWithResponseCharacteristicUUID.push(item.characteristic);
           }
-          if (property == 'WriteWithoutResponse') {
+          if (property === 'WriteWithoutResponse') {
             this.writeWithoutResponseServiceUUID.push(item.service);
             this.writeWithoutResponseCharacteristicUUID.push(
               item.characteristic,
@@ -192,20 +181,19 @@ export default class BleModule {
       'writeWithoutResponseCharacteristicUUID',
       this.writeWithoutResponseCharacteristicUUID,
     );
-    console.log('nofityServiceUUID', this.nofityServiceUUID);
-    console.log('nofityCharacteristicUUID', this.nofityCharacteristicUUID);
+    console.log('notifyServiceUUID', this.notifyServiceUUID);
+    console.log('notifyCharacteristicUUID', this.notifyCharacteristicUUID);
   }
-
   /**
-   * 尝试连接蓝牙。如果无法连接，可能需要先扫描设备。
-   * 在 iOS 中，尝试连接到蓝牙设备不会超时，因此如果您不希望出现这种情况，则可能需要明确设置计时器。
+   * Bluetooth를 연결합니다. 연결할 수 없는 경우 장치를 먼저 스캔해야 할 수도 있습니다.
+   * iOS에서는 Bluetooth 장치에 연결하는 데 시간이 걸리지 않으므로 발생하지 않으려면 타이머를 명확하게 설정해야 할 수도 있습니다.
    */
   connect(id: string): Promise<PeripheralInfo> {
     return new Promise((resolve, reject) => {
       BleManager.connect(id)
         .then(() => {
           console.log('Connected success');
-          // 获取已连接蓝牙设备的服务和特征
+          // 연결된 Bluetooth 장비의 서비스 및 특성을 구합니다.
           return BleManager.retrieveServices(id);
         })
         .then(peripheralInfo => {
@@ -220,8 +208,7 @@ export default class BleModule {
         });
     });
   }
-
-  /** 断开蓝牙连接 */
+  /** Bluetooth 연결 분리 */
   disconnect() {
     BleManager.disconnect(this.peripheralId)
       .then(() => {
@@ -231,14 +218,13 @@ export default class BleModule {
         console.log('Disconnected fail', error);
       });
   }
-
-  /** 打开通知 */
+  /** 알림 시작 */
   startNotification(index = 0): Promise<void> {
     return new Promise((resolve, reject) => {
       BleManager.startNotification(
         this.peripheralId,
-        this.nofityServiceUUID[index],
-        this.nofityCharacteristicUUID[index],
+        this.notifyServiceUUID[index],
+        this.notifyCharacteristicUUID[index],
       )
         .then(() => {
           console.log('Notification started');
@@ -250,14 +236,13 @@ export default class BleModule {
         });
     });
   }
-
-  /** 关闭通知 */
+  /** 알림 중지 */
   stopNotification(index = 0): Promise<void> {
     return new Promise((resolve, reject) => {
       BleManager.stopNotification(
         this.peripheralId,
-        this.nofityServiceUUID[index],
-        this.nofityCharacteristicUUID[index],
+        this.notifyServiceUUID[index],
+        this.notifyCharacteristicUUID[index],
       )
         .then(() => {
           console.log('Stop notification success!');
@@ -269,8 +254,7 @@ export default class BleModule {
         });
     });
   }
-
-  /** 写数据到蓝牙 */
+  /** Bluetooth에 Data 작성 */
   write(data: any, index = 0): Promise<void> {
     return new Promise((resolve, reject) => {
       BleManager.write(
@@ -289,8 +273,7 @@ export default class BleModule {
         });
     });
   }
-
-  /** 写数据到蓝牙，没有响应 */
+  /** 리스폰스 없이 Bluetooth에 Data를 작성합니다. */
   writeWithoutResponse(data: any, index = 0): Promise<void> {
     return new Promise((resolve, reject) => {
       BleManager.writeWithoutResponse(
@@ -309,8 +292,7 @@ export default class BleModule {
         });
     });
   }
-
-  /** 读取指定特征的数据 */
+  /** 지정된 기능이 있는 Data를 읽습니다. */
   read(index = 0): Promise<string> {
     return new Promise((resolve, reject) => {
       BleManager.read(
@@ -329,8 +311,7 @@ export default class BleModule {
         });
     });
   }
-
-  /** 返回已连接的蓝牙设备 */
+  /** 연결된 Bluetooth 장치로 돌아갑니다. */
   getConnectedPeripherals(): Promise<Peripheral[]> {
     return new Promise((resolve, reject) => {
       BleManager.getConnectedPeripherals([])
@@ -344,8 +325,7 @@ export default class BleModule {
         });
     });
   }
-
-  /** 判断指定设备是否已连接 */
+  /** 지정된 장치가 연결되어 있는지 확인 */
   isPeripheralConnected(): Promise<boolean> {
     return new Promise((resolve, reject) => {
       BleManager.isPeripheralConnected(this.peripheralId, [])
@@ -363,8 +343,7 @@ export default class BleModule {
         });
     });
   }
-
-  /** (Android only) 获取已绑定的设备 */
+  /** (Android 만 해당) 바인딩 장치를 얻습니다. */
   getBondedPeripherals(): Promise<Peripheral[]> {
     return new Promise((resolve, reject) => {
       BleManager.getBondedPeripherals()
@@ -378,19 +357,17 @@ export default class BleModule {
         });
     });
   }
-
-  /** (Android only) 打开蓝牙 */
+  /** (Android 만 해당) Bluetooth 활성화 */
   enableBluetooth() {
     BleManager.enableBluetooth()
       .then(() => {
-        console.log('The bluetooh is already enabled or the user confirm');
+        console.log('The bluetooth is already enabled or the user confirm');
       })
       .catch(error => {
         console.log('The user refuse to enable bluetooth', error);
       });
   }
-
-  /** (Android only) 从缓存列表中删除断开连接的外围设备。它在设备关闭时很有用，因为它会在再次打开时被重新发现 */
+  /** (Android만 해당) Cache 목록에서 연결된 주변 장치 장치 삭제. 장치가 다시 활성화면 다시 연결됩니다. */
   removePeripheral() {
     BleManager.removePeripheral(this.peripheralId)
       .then(() => {

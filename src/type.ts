@@ -1,20 +1,20 @@
-/** react-native-ble-manager事件 */
+/** react-native-ble-manager */
 export enum BleEventType {
-  /** 扫描结束监听 */
+  /** 스캔 수신 종료 */
   BleManagerStopScan = 'BleManagerStopScan',
-  /** 扫描到一个新设备 */
+  /** 새 장치 검색 */
   BleManagerDiscoverPeripheral = 'BleManagerDiscoverPeripheral',
-  /** 蓝牙状态改变 */
+  /** Bluetooth 상태 변경 */
   BleManagerDidUpdateState = 'BleManagerDidUpdateState',
-  /** 接收到新数据 */
+  /** 새 Data 수신 */
   BleManagerDidUpdateValueForCharacteristic = 'BleManagerDidUpdateValueForCharacteristic',
-  /** 蓝牙设备已连接 */
+  /** Bluetooth 장치 연결됨 */
   BleManagerConnectPeripheral = 'BleManagerConnectPeripheral',
-  /** 蓝牙设备已断开连接 */
+  /** Bluetooth 장치 연결 해제 */
   BleManagerDisconnectPeripheral = 'BleManagerDisconnectPeripheral',
-  /** [iOS only] 在centralManager:WillRestoreState:被调用时触发（应用程序在后台重新启动以处理蓝牙事件） */
+  /** [iOS 만 해당] centralManager:WillRestoreState: 호출 시 트리거됨 (Bluetooth 이벤트 처리를 위해 앱이 백그라운드에서 재시작됨) */
   BleManagerCentralManagerWillRestoreState = 'BleManagerCentralManagerWillRestoreState',
-  /** [iOS only] 外围设备收到了开始或停止为指定特征值提供通知的请求 */
+  /** [iOS 만 해당] 주변 장치가 지정된 기능 값에 대한 알림 제공 시작 또는 중지 요청을 받았습니다. */
   BleManagerDidUpdateNotificationStateFor = 'BleManagerDidUpdateNotificationStateFor',
 }
 

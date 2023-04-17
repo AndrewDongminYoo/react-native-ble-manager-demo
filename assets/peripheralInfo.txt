@@ -1,5 +1,5 @@
-anroid连接后的蓝牙信息：
-{ characteristics: 
+android Bluetooth 정보 연결：
+{ characteristics:
  [ { properties: { Read: 'Read' },
      characteristic: '2a00',
      service: '1800' },
@@ -28,24 +28,23 @@ anroid连接后的蓝牙信息：
    { properties: { Read: 'Read' },
      characteristic: '347f7608-2e2d-47eb-913b-75d4edc4de3b',
      service: '9e5d1e47-5c13-43a0-8635-82ad38a1386f' } ],
-services: 
+services:
  [ { uuid: '1801' },
    { uuid: '1800' },
    { uuid: 'cb00' },
    { uuid: '180a' },
    { uuid: '9e5d1e47-5c13-43a0-8635-82ad38a1386f' } ],
 rssi: -77,
-advertising: 
- { bytes: 
+advertising:
+ { bytes:
     [ 2,1,5,3,3,0,203,14,9,72,84,67,32,66,83,32,48,57,65,56,66,52,2,10,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 ],
    data: 'AgEFAwMAyw4JSFRDIEJTIDA5QThCNAIKBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=',
    CDVType: 'ArrayBuffer' },
 id: '80:7A:BF:ED:9D:09',
 name: 'HTC BS 09A8B4' }
 
-
-ios连接后的蓝牙信息：
-'Connected peripheralInfo: ', { characteristics: 
+ios Bluetooth 정보 연결：
+'Connected peripheralInfo: ', { characteristics:
    [ { properties: [ 'Read', 'Write' ],
        isNotifying: false,
        characteristic: 'CB01',
@@ -76,7 +75,7 @@ ios连接后的蓝牙信息：
        service: '9E5D1E47-5C13-43A0-8635-82AD38A1386F' } ],
   id: '0D0E5B6C-AC9A-4D60-B398-368863BFE64F',
   rssi: -64,
-  advertising: 
+  advertising:
    { kCBAdvDataLocalName: 'HTC BS 09A8B4',
      kCBAdvDataServiceUUIDs: [ 'CB00' ],
      kCBAdvDataTxPowerLevel: 4,

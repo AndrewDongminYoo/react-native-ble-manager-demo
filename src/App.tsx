@@ -21,40 +21,36 @@ import Characteristic from './components/Characteristic';
 import Header from './components/Header';
 import {BleEventType, BleState} from './type';
 
-// 注意: 需要确保全局只有一个实例，因为BleModule类保存着蓝牙的连接信息
+// 참고 : BleModule 카테고리가 Bluetooth의 연결 정보를 유지하기 때문에 글로벌 상태로 싱글턴 객체를 유지합니다.
 const bleModule = new BleModule();
-
 const bleProtocol = new BleProtocol();
 
 const App: React.FC = () => {
-  // 蓝牙是否连接
+  // Bluetooth 연결 여부
   const [isConnected, setIsConnected] = useState(false);
-  // 正在扫描中
-  const [scaning, setScaning] = useState(false);
-  // 蓝牙是否正在监听
+  // Bluetooth 스캔 중
+  const [scanning, setScanning] = useState(false);
+  // Bluetooth 모니터링 여부
   const [isMonitoring, setIsMonitoring] = useState(false);
-  // 当前正在连接的蓝牙id
+  // Bluetooth 현재 연결 ID
   const [connectingId, setConnectingId] = useState('');
-  // 写数据
+  // Data 작성
   const [writeData, setWriteData] = useState('');
-  // 接收到的数据
+  // Data 수신
   const [receiveData, setReceiveData] = useState('');
-  // 读取的数据
+  // Data 읽기
   const [readData, setReadData] = useState('');
-  // 输入的内容
+  // 입력할 텍스트
   const [inputText, setInputText] = useState('');
-  // 扫描的蓝牙列表
-  const [data, setData] = useState<Peripheral[]>([]);
-
-  /** 蓝牙接收的数据缓存 */
+  // Bluetooth 주변기기 목록
+  const [peripheral, setPeripheral] = useState<Peripheral[]>([]);
+  /** Bluetooth에서 수신한 Data Cache */
   const bleReceiveData = useRef<any[]>([]);
-  /** 使用Map类型保存搜索到的蓝牙设备，确保列表不显示重复的设备 */
+  /** 맵 타입을 사용하여 찾은 Bluetooth 장치를 저장하여 목록에 중복 장치가 표시되지 않도록합니다. */
   const deviceMap = useRef(new Map<string, Peripheral>());
-
   useEffect(() => {
     bleModule.start();
   }, []);
-
   useEffect(() => {
     const updateStateListener = bleModule.addListener(
       BleEventType.BleManagerDidUpdateState,
@@ -80,7 +76,6 @@ const App: React.FC = () => {
       BleEventType.BleManagerDidUpdateValueForCharacteristic,
       handleUpdateValue,
     );
-
     return () => {
       updateStateListener.remove();
       stopScanListener.remove();
@@ -89,106 +84,96 @@ const App: React.FC = () => {
       disconnectPeripheralListener.remove();
       updateValueListener.remove();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  /** 蓝牙状态改变 */
+  /** Bluetooth 상태 변경 핸들러 */
   function handleUpdateState(event: BleManagerDidUpdateStateEvent) {
     console.log('BleManagerDidUpdateState:', event);
     bleModule.bleState = event.state;
-    // 蓝牙打开时自动扫描
+    // Bluetooth가 활성화되면 자동으로 스캔합니다.
     if (event.state === BleState.On) {
       scan();
     }
   }
-
-  /** 扫描结束监听 */
+  /** 스캔 중지 핸들러 */
   function handleStopScan() {
     console.log('Scanning is stopped');
-    setScaning(false);
+    setScanning(false);
   }
-
-  /** 搜索到一个新设备监听 */
+  /** 새로운 주변기기 탐색 */
   function handleDiscoverPeripheral(data: Peripheral) {
     // console.log('BleManagerDiscoverPeripheral:', data);
-    // 蓝牙连接 id
+    // Bluetooth 연결 ID
     let id;
-    // 蓝牙 Mac 地址
+    // Bluetooth Mac Address
     let macAddress;
-    if (Platform.OS == 'android') {
+    if (Platform.OS === 'android') {
       macAddress = data.id;
       id = macAddress;
     } else {
-      // ios连接时不需要用到Mac地址，但跨平台识别同一设备时需要 Mac 地址
+      // iOS가 연결된 경우 MAC Address는 필요하지 않지만 크로스 플랫폼 기기 간 동일한 인터페이스를 위해 MAC Address를 입력합니다.
       macAddress = bleProtocol.getMacFromAdvertising(data);
       id = data.id;
     }
-    deviceMap.current.set(data.id, data);
-    setData([...deviceMap.current.values()]);
+    deviceMap.current.set(id, data);
+    setPeripheral([...deviceMap.current.values()]);
   }
-
-  /** 蓝牙设备已连接 */
+  /** Bluetooth 주변기기 연결 */
   function handleConnectPeripheral(data: Peripheral) {
     console.log('BleManagerConnectPeripheral:', data);
   }
-
-  /** 蓝牙设备已断开连接 */
+  /** Bluetooth 주변기기 연결 끊김 */
   function handleDisconnectPeripheral(data: Peripheral) {
     console.log('BleManagerDisconnectPeripheral:', data);
     initData();
   }
-
   function initData() {
-    // 断开连接后清空UUID
+    // 연결을 분리 한 후 UUID를 초기화합니다.
     bleModule.initUUID();
-    // 断开后显示上次的扫描结果
-    setData([...deviceMap.current.values()]);
+    // 연결을 끊은 후 마지막 스캔 결과를 표시합니다.
+    setPeripheral([...deviceMap.current.values()]);
     setIsConnected(false);
     setWriteData('');
     setReadData('');
     setReceiveData('');
     setInputText('');
   }
-
-  /** 接收到新数据 */
+  /** 새로운 Data를 받아 업데이트합니다. */
   function handleUpdateValue(data: any) {
     let value = data.value as string;
     console.log('BluetoothUpdateValue:', value);
-
     bleReceiveData.current.push(value);
     setReceiveData(bleReceiveData.current.join(''));
-
     bleProtocol.parseData(value);
   }
-
   function scan() {
     if (bleModule.bleState !== BleState.On) {
       enableBluetooth();
       return;
     }
-
-    // 重新扫描时清空列表
+    // 스캔할 때 현재 연결 기기 목록을 지웁니다.
     deviceMap.current.clear();
     bleModule
       .scan()
       .then(() => {
-        setScaning(true);
+        setScanning(true);
       })
       .catch(err => {
-        setScaning(false);
+        setScanning(false);
+        console.error(err);
       });
   }
-
   function enableBluetooth() {
     if (Platform.OS === 'ios') {
-      alert('请开启手机蓝牙');
+      alert('휴대폰 Bluetooth를 켜십시오.');
     } else {
-      Alert.alert('提示', '请开启手机蓝牙', [
+      Alert.alert('힌트', '휴대폰 Bluetooth를 켜십시오.', [
         {
-          text: '取消',
+          text: '취소',
           onPress: () => {},
         },
         {
-          text: '打开',
+          text: '활성화',
           onPress: () => {
             bleModule.enableBluetooth();
           },
@@ -196,52 +181,49 @@ const App: React.FC = () => {
       ]);
     }
   }
-
-  /** 连接蓝牙 */
+  /** Bluetooth 연결 */
   function connect(item: Peripheral) {
     setConnectingId(item.id);
-
-    if (scaning) {
-      // 当前正在扫描中，连接时关闭扫描
+    if (scanning) {
+      // 현재 스캔하고 연결할 때 스캔을 끕니다.
       bleModule.stopScan().then(() => {
-        setScaning(false);
+        setScanning(false);
       });
     }
-
     bleModule
       .connect(item.id)
       .then(peripheralInfo => {
         setIsConnected(true);
-        // 连接成功后，列表只显示已连接的设备
-        setData([item]);
+        // 연결이 성공하면 목록이 연결된 장치 만 표시됩니다.
+        setPeripheral([item]);
+        setConnectingId(peripheralInfo.id);
       })
       .catch(err => {
-        alert('连接失败');
+        alert('연결 실패');
+        console.error(err);
       })
       .finally(() => {
         setConnectingId('');
       });
   }
-
-  /** 断开连接 */
+  /** 연결을 끊습니다. */
   function disconnect() {
     bleModule.disconnect();
     initData();
   }
-
   function notify(index: number) {
     bleModule
       .startNotification(index)
       .then(() => {
         setIsMonitoring(true);
-        alert('开启成功');
+        alert('알림 시작에 성공했습니다.');
       })
       .catch(err => {
         setIsMonitoring(false);
-        alert('开启失败');
+        alert('알림 시작에 실패했습니다.');
+        console.error(err);
       });
   }
-
   function read(index: number) {
     bleModule
       .read(index)
@@ -249,17 +231,16 @@ const App: React.FC = () => {
         setReadData(data);
       })
       .catch(err => {
-        alert('读取失败');
+        alert('읽기 실패');
+        console.error(err);
       });
   }
-
   function write(writeType: 'write' | 'writeWithoutResponse') {
     return (index: number) => {
       if (inputText.length === 0) {
-        alert('请输入消息内容');
+        alert('메시지 내용을 입력하십시오.');
         return;
       }
-
       bleModule[writeType](inputText, index)
         .then(() => {
           bleReceiveData.current = [];
@@ -267,15 +248,14 @@ const App: React.FC = () => {
           setInputText('');
         })
         .catch(err => {
-          alert('发送失败');
+          alert('전송에 실패했습니다.');
+          console.error(err);
         });
     };
   }
-
   function alert(text: string) {
-    Alert.alert('提示', text, [{text: '确定', onPress: () => {}}]);
+    Alert.alert('힌트', text, [{text: '단언', onPress: () => {}}]);
   }
-
   function renderItem(item: ListRenderItemInfo<Peripheral>) {
     const data = item.item;
     const disabled = !!connectingId && connectingId !== data.id;
@@ -290,14 +270,13 @@ const App: React.FC = () => {
         <View style={{flexDirection: 'row'}}>
           <Text style={{color: 'black'}}>{data.name ? data.name : ''}</Text>
           <Text style={{marginLeft: 50, color: 'red'}}>
-            {connectingId === data.id ? '连接中...' : ''}
+            {connectingId === data.id ? '연결 중...' : ''}
           </Text>
         </View>
         <Text>{data.id}</Text>
       </TouchableOpacity>
     );
   }
-
   function renderFooter() {
     if (!isConnected) {
       return;
@@ -311,56 +290,52 @@ const App: React.FC = () => {
           borderTopWidth: StyleSheet.hairlineWidth * 2,
         }}>
         <Characteristic
-          label="写数据（write）："
-          action="发送"
+          label="Data 작성 (write) :"
+          action="보내다"
           content={writeData}
           characteristics={bleModule.writeWithResponseCharacteristicUUID}
           onPress={write('write')}
           input={{inputText, setInputText}}
         />
-
         <Characteristic
-          label="写数据（writeWithoutResponse）："
-          action="发送"
+          label="Data 작성 (writeWithoutResponse)"
+          action="보내다"
           content={writeData}
           characteristics={bleModule.writeWithoutResponseCharacteristicUUID}
           onPress={write('writeWithoutResponse')}
           input={{inputText, setInputText}}
         />
-
         <Characteristic
-          label="读取的数据："
-          action="读取"
+          label="읽기 Data:"
+          action="읽다"
           content={readData}
           characteristics={bleModule.readCharacteristicUUID}
           onPress={read}
         />
-
         <Characteristic
-          label={`通知监听接收的数据（${
-            isMonitoring ? '监听已开启' : '监听未开启'
-          }）：`}
-          action="开启通知"
+          label={`Data 수신 Data 알림 (${
+            isMonitoring ? '모니터링 중입니다.' : '모니터링이 꺼져 있습니다.'
+          }) :`}
+          action="알아채다"
           content={receiveData}
-          characteristics={bleModule.nofityCharacteristicUUID}
+          characteristics={bleModule.notifyCharacteristicUUID}
           onPress={notify}
         />
       </ScrollView>
     );
   }
-
   return (
     <SafeAreaView style={styles.container}>
       <Header
         isConnected={isConnected}
-        scaning={scaning}
-        disabled={scaning || !!connectingId}
+        scanning={scanning}
+        disabled={scanning || !!connectingId}
         onPress={isConnected ? disconnect : scan}
       />
       <FlatList
         renderItem={renderItem}
         keyExtractor={item => item.id}
-        data={data}
+        data={peripheral}
         extraData={connectingId}
       />
       {renderFooter()}

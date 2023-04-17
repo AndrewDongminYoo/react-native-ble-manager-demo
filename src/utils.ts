@@ -1,4 +1,4 @@
-/** 在字符串前面添加 0, 默认补充为2位 */
+/** 문자열 앞에 0을 추가하면 기본 보수는 2Bit입니다. */
 export function addZero(str: string, bit = 2) {
   for (let i = str.length; i < bit; i++) {
     str = '0' + str;
@@ -6,9 +6,9 @@ export function addZero(str: string, bit = 2) {
   return str;
 }
 
-/** 字符串转换成 byte 数组 */
+/** 문자열을 Byte 배열로 변환 */
 export function stringToByte(str: string) {
-  var bytes = new Array();
+  var bytes = [];
   var len, c;
   len = str.length;
   for (var i = 0; i < len; i++) {
@@ -31,8 +31,7 @@ export function stringToByte(str: string) {
   }
   return bytes;
 }
-
-/** byte 数组转换成字符串 */
+/** Byte 배열을 문자열로 변환 */
 export function byteToString(arr: string | number[]) {
   if (typeof arr === 'string') {
     return arr;
@@ -42,7 +41,7 @@ export function byteToString(arr: string | number[]) {
   for (var i = 0; i < _arr.length; i++) {
     var one = _arr[i].toString(2),
       v = one.match(/^1+?(?=0)/);
-    if (v && one.length == 8) {
+    if (v && one.length === 8) {
       var bytesLength = v[0].length;
       var store = _arr[i].toString(2).slice(7 - bytesLength);
       for (var st = 1; st < bytesLength; st++) {
