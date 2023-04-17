@@ -6,7 +6,9 @@
  */
 package com.blemanagerdemo;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
+
 import com.facebook.flipper.android.AndroidFlipperClient;
 import com.facebook.flipper.android.utils.FlipperUtils;
 import com.facebook.flipper.core.FlipperClient;
@@ -22,7 +24,6 @@ import com.facebook.react.ReactInstanceEventListener;
 import com.facebook.react.ReactInstanceManager;
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.modules.network.NetworkingModule;
-import okhttp3.OkHttpClient;
 
 /**
  * Class responsible of loading Flipper inside your React Native application. This is the debug
@@ -40,33 +41,24 @@ public class ReactNativeFlipper {
 
       NetworkFlipperPlugin networkFlipperPlugin = new NetworkFlipperPlugin();
       NetworkingModule.setCustomClientBuilder(
-          new NetworkingModule.CustomClientBuilder() {
-            @Override
-            public void apply(OkHttpClient.Builder builder) {
-              builder.addNetworkInterceptor(new FlipperOkhttpInterceptor(networkFlipperPlugin));
-            }
-          });
+              builder -> builder.addNetworkInterceptor(new FlipperOkhttpInterceptor(networkFlipperPlugin)));
       client.addPlugin(networkFlipperPlugin);
       client.start();
 
       // Fresco Plugin needs to ensure that ImagePipelineFactory is initialized
       // Hence we run if after all native modules have been initialized
+      @SuppressLint("VisibleForTests")
       ReactContext reactContext = reactInstanceManager.getCurrentReactContext();
       if (reactContext == null) {
         reactInstanceManager.addReactInstanceEventListener(
-            new ReactInstanceEventListener() {
-              @Override
-              public void onReactContextInitialized(ReactContext reactContext) {
-                reactInstanceManager.removeReactInstanceEventListener(this);
-                reactContext.runOnNativeModulesQueueThread(
-                    new Runnable() {
-                      @Override
-                      public void run() {
-                        client.addPlugin(new FrescoFlipperPlugin());
-                      }
-                    });
-              }
-            });
+        new ReactInstanceEventListener() {
+          @Override
+          public void onReactContextInitialized(ReactContext reactContext) {
+            reactInstanceManager.removeReactInstanceEventListener(this);
+            reactContext.runOnNativeModulesQueueThread(
+                    () -> client.addPlugin(new FrescoFlipperPlugin()));
+          }
+        });
       } else {
         client.addPlugin(new FrescoFlipperPlugin());
       }

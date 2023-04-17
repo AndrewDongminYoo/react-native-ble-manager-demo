@@ -46,7 +46,7 @@ const App: React.FC = () => {
   const [peripheral, setPeripheral] = useState<Peripheral[]>([]);
   /** Bluetooth에서 수신한 Data Cache */
   const bleReceiveData = useRef<any[]>([]);
-  /** 맵 타입을 사용하여 찾은 Bluetooth 장치를 저장하여 목록에 중복 장치가 표시되지 않도록합니다. */
+  /** 맵 타입을 사용하여 찾은 Bluetooth 장치를 저장하여 목록에 중복 장치가 표시되지 않도록 합니다. */
   const deviceMap = useRef(new Map<string, Peripheral>());
   useEffect(() => {
     bleModule.start();
